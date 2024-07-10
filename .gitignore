@@ -1,0 +1,5 @@
+credentials.py
+*.pyc
+__pycache__/
+*.curl
+auth_token.txt
