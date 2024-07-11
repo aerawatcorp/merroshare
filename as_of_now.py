@@ -30,6 +30,26 @@ _headers = {
     "sec-ch-ua-platform": '"Android"',
 }
 
+print_keys = [
+    "scrip",
+    "scrip_desc",
+    "qty",
+    "cost_per_unit",
+    "cost",
+    "ltp",
+    "ltp_closing",
+    "eps_closing",
+    "eps_ltp",
+    "gain_closing",
+    "gain_ltp",
+    "gain_closing_percent",
+    "gain_ltp_percent",
+    "_",
+    "trend_gain",
+]
+
+numeric_keys = [x for x in print_keys if x not in ["scrip", "scrip_desc", "_"]]
+
 _token_file = "auth_token.txt"
 try:
     _auth_token = open(_token_file, "r").read() if _token_file else None
@@ -140,28 +160,27 @@ def compare():
                 "ltp": pp["ltp"],
                 "ltp_closing": pp["ltp_closing"],
                 "scrip_desc": pp["scrip_desc"],
-                "eps_closing": eps_closing.__round__(2),
-                "eps_ltp": eps_ltp.__round__(2),
-                "gain_closing": gain_closing.__round__(2),
-                "gain_ltp": gain_ltp.__round__(2),
+                "eps_closing": eps_closing,
+                "eps_ltp": eps_ltp,
+                "gain_closing": gain_closing,
+                "gain_ltp": gain_ltp,
+                "gain_closing_percent": ((eps_closing / portfolio_cost_per_unit) * 100),
+                "gain_ltp_percent": ((eps_ltp / portfolio_cost_per_unit) * 100),
+                "trend_gain": eps_ltp - eps_closing,
             }
         )
 
+    for key, value in wacc_summary.items():
+        for k in numeric_keys:
+            if k == "qty":
+                continue
+            try:
+                wacc_summary[key][k] = float(wacc_summary[key][k]).__round__(2)
+            except KeyError:
+                pass
+
     return wacc_summary
 
-
-print_keys = [
-    "scrip",
-    "qty",
-    "cost_per_unit",
-    "cost",
-    "ltp",
-    "ltp_closing",
-    "eps_closing",
-    "eps_ltp",
-    "gain_closing",
-    "gain_ltp",
-]
 
 app = Flask(__name__)
 
