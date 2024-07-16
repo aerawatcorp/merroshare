@@ -305,3 +305,18 @@ def reset_token():
 
 if __name__ == "__main__":
     app.run(port=5000, debug=True)
+
+
+"""
+52 weeks average
+Turnover
+Symbol	Turnover	LTP	% Change	High	Low	Open	Qty
+position in the market
+AGM DIVIDEND RIGHT
+
+https://merolagani.com/AnnouncementSummary.aspx?actType=AGM&fiscalYear=
+https://merolagani.com/MarketSummary.aspx?type=turnovers
+
+and transactions
+
+"""
