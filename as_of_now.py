@@ -1,7 +1,7 @@
 import requests
 from copy import deepcopy
 
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect
 from datetime import datetime
 
 from credentials import demat, dp_id, client_id, username, password
@@ -36,8 +36,8 @@ print_keys = [
     "qty",
     "cost_per_unit",
     "cost",
-    "ltp",
     "ltp_closing",
+    "ltp",
     "eps_closing",
     "eps_ltp",
     "gain_closing",
@@ -179,7 +179,24 @@ def compare():
             except KeyError:
                 pass
 
-    return wacc_summary
+    return {
+        "portfolio": wacc_summary,
+        "summary": {
+            "investment": sum([x["cost"] for x in wacc_summary.values()]),
+            "cost": sum(
+                [
+                    x["cost"]
+                    for x in filter(
+                        lambda x: x.get("scrip_desc") is not None, wacc_summary.values()
+                    )
+                ]
+            ),
+            "ltp": sum([x.get("gain_ltp", 0) for x in wacc_summary.values()]),
+            "ltp_closing": sum(
+                [x.get("gain_closing", 0) for x in wacc_summary.values()]
+            ),
+        },
+    }
 
 
 app = Flask(__name__)
@@ -196,7 +213,11 @@ def compare_html():
         _auth_token = None
 
     return render_template(
-        "/portfolio.html", portfolio=comparision, keys=print_keys, now=nowtime
+        "/portfolio.html",
+        portfolio=comparision["portfolio"],
+        summary=comparision["summary"],
+        keys=print_keys,
+        now=nowtime,
     )
 
 
@@ -211,6 +232,13 @@ def compare_json():
         _auth_token = None
 
     return comparision
+
+
+@app.route("/reset")
+def reset_token():
+    open(_token_file, "w").write("")
+    logged_in_headers()
+    return redirect("/")
 
 
 if __name__ == "__main__":
