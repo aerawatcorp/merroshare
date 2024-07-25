@@ -4,3 +4,5 @@ __pycache__/
 *.curl
 auth_token.txt
 *.swp
+scrip_annotation.json
+

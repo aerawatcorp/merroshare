@@ -1,3 +1,5 @@
+import os
+import json
 import requests
 from copy import deepcopy
 
@@ -11,6 +13,9 @@ root = "https://webbackend.cdsc.com.np/api"
 wacc_url = "/myPurchase/waccReport/"
 portfolio_url = "/meroShareView/myPortfolio/"
 login_url = "/meroShare/auth/"
+
+_annotation_file = "scrip_annotation.json"
+_token_file = "auth_token.txt"
 
 _headers = {
     "Accept": "application/json, text/plain, */*",
@@ -34,6 +39,7 @@ print_keys = [
     "scrip",
     "scrip_desc",
     "qty",
+    "annotate_ipo",
     "cost_per_unit",
     "cost",
     "ltp_closing",
@@ -46,11 +52,19 @@ print_keys = [
     "gain_ltp_percent",
     "_",
     "trend_gain",
+    "annotate_target_price",
+    "closing_target_gain",
+    "ltp_target_gain",
 ]
 
-numeric_keys = [x for x in print_keys if x not in ["scrip", "scrip_desc", "_"]]
+annotate_keys = ["ipo", "target_price"]
 
-_token_file = "auth_token.txt"
+numeric_keys = [
+    x
+    for x in print_keys
+    if x not in ["scrip", "scrip_desc", "_", "annotate_ipo", "annotate_target_price"]
+]
+
 try:
     _auth_token = open(_token_file, "r").read() if _token_file else None
 except Exception as exc:
@@ -60,11 +74,18 @@ except Exception as exc:
 from requests import session
 
 this_session = session()
+afile_obj = open(_annotation_file, "r") if os.path.exists(_annotation_file) else None
+annotation_data = json.load(afile_obj) if afile_obj else {}
 
 
-def login():
+def annotate(scrip):
+    global annotation_data
+    return annotation_data.get(demat, {}).get(scrip.lower(), {})
+
+
+def login(force=False):
     global _auth_token
-    if _auth_token:
+    if _auth_token and not force:
         return _auth_token
     url = root + login_url
     login_data = {"clientId": client_id, "username": username, "password": password}
@@ -110,6 +131,14 @@ def get_portfolio():
     return response.json()
 
 
+def process_annotation(akey, aval):
+    if akey == "ipo":
+        return "IPO" if aval == True else "Secondary Market"
+    elif akey == "target_price":
+        return float(aval) if aval else None
+    return aval  # default
+
+
 def compare():
     wacc = get_wacc()
     portfolio = get_portfolio()
@@ -131,6 +160,11 @@ def compare():
         _scrip = w["scrip"]
         _demat = w["demat"]
         wacc_summary[f"{_demat}_{_scrip}"] = deepcopy(w)
+        _annotations = annotate(_scrip)
+        for akey in annotate_keys:
+            wacc_summary[f"{_demat}_{_scrip}"][f"annotate_{akey}"] = process_annotation(
+                akey, _annotations.get(akey)
+            )
 
     portfolio_key_maps = {
         "currentBalance": "qty",
@@ -167,8 +201,25 @@ def compare():
                 "gain_closing_percent": ((eps_closing / portfolio_cost_per_unit) * 100),
                 "gain_ltp_percent": ((eps_ltp / portfolio_cost_per_unit) * 100),
                 "trend_gain": eps_ltp - eps_closing,
+                "css_class": "",
             }
         )
+
+        if "annotate_target_price" in wacc_summary[portfolio_key]:
+            target_price = wacc_summary[portfolio_key]["annotate_target_price"]
+            try:
+                closing_target_gain = float(pp["ltp_closing"]) - target_price
+                ltp_target_gain = float(pp["ltp"]) - target_price
+
+                wacc_summary[portfolio_key]["closing_target_gain"] = closing_target_gain
+                wacc_summary[portfolio_key]["ltp_target_gain"] = ltp_target_gain
+
+                wacc_summary[portfolio_key][
+                    "css_class"
+                ] = f" target-{'gain' if ltp_target_gain > 0 else 'loss'}"
+            except TypeError:
+                wacc_summary[portfolio_key]["closing_target_gain"] = None
+                wacc_summary[portfolio_key]["ltp_target_gain"] = None
 
     for key, value in wacc_summary.items():
         for k in numeric_keys:
@@ -176,6 +227,8 @@ def compare():
                 continue
             try:
                 wacc_summary[key][k] = float(wacc_summary[key][k]).__round__(2)
+            except TypeError:
+                pass
             except KeyError:
                 pass
 
@@ -231,12 +284,21 @@ def compare_json():
         open(_token_file, "w").write("")
         _auth_token = None
 
-    return comparision
+    return {
+        "portfolio": comparision["portfolio"],
+        "summary": comparision["summary"],
+        "keys": print_keys,
+        "now": nowtime,
+    }
 
 
 @app.route("/reset")
 def reset_token():
-    open(_token_file, "w").write("")
+    try:
+        login(force=True)
+    except Exception as exc:
+        print(exc)
+        return "Unable to reset login. Please refresh and retry in a while."
     logged_in_headers()
     return redirect("/")
 

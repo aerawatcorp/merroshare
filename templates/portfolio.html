@@ -47,6 +47,12 @@
       display: inline-block;
       width: 200px;
     }
+    .target-gain td *{
+      color: green !important;
+    }
+    .target-loss td *{
+      color: red !important;
+      }
   </style>
 </head>
 
@@ -73,7 +79,7 @@
 
               <tbody>
                 {% for c, v in portfolio.items() %}
-                <tr>
+                <tr class="scrip-{{v.scrip}} {{v.css_class}}">
                   {% for k in keys %}
                   <td class="gain {{k}} {% if v.get(k)|float < 0.0 %}loss{% endif %}">
                     <span>
@@ -131,21 +137,25 @@
       "lengthMenu": [50, 100, 200, 500, 1000],
       "pageLength": 200,
       "columns": [
-        { "type": "text" },
-        { "type": "text" },
-        { "type": "any-number" },
-        { "type": "any-number" },
-        { "type": "any-number" },
-        { "type": "any-number" },
-        { "type": "any-number" },
-        { "type": "any-number" },
-        { "type": "any-number" },
-        { "type": "any-number" },
-        { "type": "any-number" },
-        { "type": "any-number" },
-        { "type": "any-number" },
-        { "type": "text" },
-        { "type": "any-number" },
+        { "type": "text", "title": "SCRIP"}, // scrip
+        { "type": "text", "title": "Name"}, // desc
+        { "type": "any-number" }, //qty
+        { "type": "boolean", "title": "IPO"}, //ipo
+        { "type": "any-number" }, //cost_per_unit
+        { "type": "any-number" }, //cost
+        { "type": "any-number" }, //ltp_closing
+        { "type": "any-number" }, //ltp
+        { "type": "any-number" }, //eps_closing
+        { "type": "any-number" }, //eps_ltp
+        { "type": "any-number" }, //gain_closing
+        { "type": "any-number" }, //gain_ltp
+        { "type": "any-number" }, //gain_closing_percentage
+        { "type": "any-number" }, //gain_ltp_percentage
+        { "type": "text", "title": "", "searchable": false, orderable: false}, //-
+        { "type": "any-number" }, //trend_gain,
+        {"type": "any-number", "title": "Target Price"},
+        {"type": "any-number", "title": "Target Gain (Closing)"},
+        {"type": "any-number", "title": "Target Gain (LTP)"}
       ]
     });
   });

@@ -1,0 +1,42 @@
+{
+    "1301370001322171": {
+        "nlic": {
+            "ipo": false,
+            "target_price": 800
+        },
+        "kef": {
+            "ipo": true
+        },
+        "mmf1": {
+            "ipo": true
+        },
+        "mbf3": {
+            "ipo": true
+        },
+        "gvl": {
+            "ipo": true
+        },
+        "hli": {
+            "ipo": true
+        },
+        "mjkc": {
+            "ipo": true
+        },
+        "nifra": {
+            "ipo": true
+        },
+        "srli": {   
+            "ipo": true
+        },
+        "kkhc": {
+            "target_price": 350, 
+            "ipo": false
+        },
+        "ksbbl": {
+            "ipo": true, 
+            "target_price": 650
+        },"rfpl": {
+            "target_price": 420
+        }
+    }
+}
