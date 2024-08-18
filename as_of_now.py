@@ -51,6 +51,7 @@ print_keys = [
     "gain_closing_percent",
     "gain_ltp_percent",
     "_",
+    "scrip",
     "trend_gain",
     "annotate_target_price",
     "closing_target_gain",
@@ -133,7 +134,7 @@ def get_portfolio():
 
 def process_annotation(akey, aval):
     if akey == "ipo":
-        return "IPO" if aval == True else "Secondary Market"
+        return "IPO" if aval == True else "SEC"
     elif akey == "target_price":
         return float(aval) if aval else None
     return aval  # default
@@ -304,7 +305,7 @@ def reset_token():
 
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=True)
+    app.run(port=5001, debug=True)
 
 
 """
